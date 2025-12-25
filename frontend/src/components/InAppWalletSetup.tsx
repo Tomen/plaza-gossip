@@ -88,7 +88,7 @@ export function InAppWalletSetup({
             <div className={`flex-1 px-3 py-2 bg-black border-2 font-mono text-sm ${
               hasBalance ? 'border-green-500 text-green-400' : 'border-yellow-500 text-yellow-400'
             }`}>
-              {formattedBalance} WND
+              {formattedBalance} PAS
             </div>
             <button
               onClick={handleRefresh}
@@ -110,7 +110,7 @@ export function InAppWalletSetup({
               <li>1. Copy your wallet address above</li>
               <li>2. Visit the Polkadot Asset Hub faucet:
                 <a
-                  href="https://faucet.polkadot.io/?parachain=westend-asset-hub"
+                  href="https://faucet.polkadot.io/?parachain=1111"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="text-cyan-400 hover:underline ml-1"

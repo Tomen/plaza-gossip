@@ -80,7 +80,8 @@ export function useChannelRegistry({
     } else {
       setChannels([]);
     }
-  }, [registryAddress, provider, loadChannels]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [registryAddress, provider]);
 
   const createChannel = useCallback(
     async (name: string, description: string, postingMode: PostingMode) => {

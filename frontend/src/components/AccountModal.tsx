@@ -193,7 +193,7 @@ export function AccountModal({
                     <div className="flex items-center justify-between font-mono text-sm">
                       <span className="text-orange-400">Balance:</span>
                       <span className="text-cyan-400">
-                        {formatBalance(appWalletBalance)} WND {getFuelEmoji(appWalletBalance)}
+                        {formatBalance(appWalletBalance)} PAS {getFuelEmoji(appWalletBalance)}
                       </span>
                     </div>
                   )}

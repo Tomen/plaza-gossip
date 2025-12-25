@@ -105,7 +105,8 @@ export function useUserRegistry({
 
   useEffect(() => {
     loadProfile();
-  }, [loadProfile]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [userAddress, registryAddress, provider]);
 
   const createProfile = useCallback(
     async (displayName: string, bio: string) => {

@@ -127,7 +127,8 @@ export function useAppWallet({
       checkAuthorization();
       refreshBalance();
     }
-  }, [appWallet, provider, checkAuthorization, refreshBalance]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [appWallet, provider]);
 
   // Authorize the app wallet as a delegate
   const authorizeDelegate = useCallback(

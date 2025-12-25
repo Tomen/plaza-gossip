@@ -21,8 +21,8 @@ import { PrivateKeyExportModal } from './components/PrivateKeyExportModal';
 import { LinkBrowserWalletModal } from './components/LinkBrowserWalletModal';
 import type { PostingMode } from './types/contracts';
 
-// RPC URL for standalone wallet
-const RPC_URL = 'https://westend-asset-hub-eth-rpc.polkadot.io';
+// RPC URL for standalone wallet (Paseo Asset Hub testnet)
+const RPC_URL = 'https://testnet-passet-hub-eth-rpc.polkadot.io';
 
 function App() {
   // Get registry address from URL parameter (?registry=0x...)
@@ -51,7 +51,7 @@ function App() {
   // App wallet (supports both modes)
   const appWallet = useAppWallet({
     userAddress: walletMode === 'browser' ? browserWallet.address : null,
-    provider: browserWallet.provider,
+    provider: walletMode === 'standalone' ? standaloneProvider : browserWallet.provider,
     mode: walletMode,
   });
 
@@ -124,7 +124,7 @@ function App() {
   // Current channel
   const channel = useChannel({
     channelAddress: selectedChannel,
-    provider: wallet.provider,
+    provider: activeProvider,
     appWallet: appWallet.isAuthorized ? appWallet.appWallet : null,
     getDisplayName,
   });

@@ -163,23 +163,24 @@ export function useChannel({
       setMessages([]);
       setChannelInfo(null);
     }
-  }, [channelAddress, provider, loadMessages, loadChannelInfo]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [channelAddress, provider]);
 
-  // Poll for new messages
+  // Poll for new messages every 15 seconds
   useEffect(() => {
     if (!channelAddress || !provider) return;
 
-    // Poll every 5 seconds
     pollIntervalRef.current = window.setInterval(() => {
       loadMessages();
-    }, 5000);
+    }, 15000);
 
     return () => {
       if (pollIntervalRef.current) {
         clearInterval(pollIntervalRef.current);
       }
     };
-  }, [channelAddress, provider, loadMessages]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [channelAddress, provider]);
 
   return {
     messages,
