@@ -15,6 +15,7 @@ import { MessageInput } from './components/MessageInput';
 import { Sidebar } from './components/Sidebar';
 import { ChannelHeader } from './components/ChannelHeader';
 import { UserListPanel } from './components/UserListPanel';
+import { UserProfileModal } from './components/UserProfileModal';
 import { CreateChannelModal } from './components/CreateChannelModal';
 import { WalletChoiceModal } from './components/WalletChoiceModal';
 import { InAppWalletSetup } from './components/InAppWalletSetup';
@@ -205,6 +206,7 @@ function App() {
   const [showInAppSetup, setShowInAppSetup] = useState(false);
   const [showExportKeyModal, setShowExportKeyModal] = useState(false);
   const [showLinkBrowserModal, setShowLinkBrowserModal] = useState(false);
+  const [profileModalAddress, setProfileModalAddress] = useState<string | null>(null);
   const [isSending, setIsSending] = useState(false);
 
   // Track if user explicitly initiated browser wallet connection (to avoid showing modal on page load)
@@ -475,6 +477,7 @@ function App() {
           <UserListPanel
             messages={channel.messages}
             currentAddress={walletConfig.activeAddress}
+            onSelectUser={setProfileModalAddress}
           />
         )}
       </main>
@@ -551,6 +554,13 @@ function App() {
         isOpen={showCreateChannelModal}
         onClose={() => setShowCreateChannelModal(false)}
         onCreate={handleCreateChannel}
+      />
+
+      <UserProfileModal
+        isOpen={!!profileModalAddress}
+        onClose={() => setProfileModalAddress(null)}
+        userAddress={profileModalAddress}
+        getProfile={userRegistry.getProfile}
       />
     </div>
   );

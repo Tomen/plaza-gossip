@@ -12,9 +12,10 @@ interface ChannelUser {
 interface UserListPanelProps {
   messages: FormattedMessage[];
   currentAddress: string | null;
+  onSelectUser?: (address: string) => void;
 }
 
-export function UserListPanel({ messages, currentAddress }: UserListPanelProps) {
+export function UserListPanel({ messages, currentAddress, onSelectUser }: UserListPanelProps) {
   const users = useMemo(() => {
     const userMap = new Map<string, ChannelUser>();
 
@@ -71,9 +72,10 @@ export function UserListPanel({ messages, currentAddress }: UserListPanelProps) 
                 user.displayName || truncateAddress(user.address);
 
               return (
-                <div
+                <button
                   key={user.address}
-                  className="px-4 py-1.5 font-mono text-sm flex items-center gap-2"
+                  onClick={() => onSelectUser?.(user.address)}
+                  className="w-full px-4 py-1.5 font-mono text-sm flex items-center gap-2 hover:bg-primary-950 transition-colors text-left"
                 >
                   <span
                     className={
@@ -90,7 +92,7 @@ export function UserListPanel({ messages, currentAddress }: UserListPanelProps) 
                   >
                     {isCurrentUser ? 'YOU' : displayIdentifier}
                   </span>
-                </div>
+                </button>
               );
             })}
           </div>
