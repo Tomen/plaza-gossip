@@ -523,6 +523,66 @@ Semantic colors are allowed and encouraged for status indicators:
 </button>
 ```
 
+### Message Input
+
+The standard pattern for message/chat inputs with send functionality:
+
+```tsx
+<form onSubmit={handleSubmit} className="border-t-2 border-primary-500 bg-black p-4">
+  <div className="flex gap-2">
+    {/* Input with prompt prefix */}
+    <div className="flex-1 relative">
+      <span className="absolute left-3 top-1/2 -translate-y-1/2 text-primary-500 font-mono text-sm">
+        &gt;
+      </span>
+      <input
+        type="text"
+        value={message}
+        onChange={(e) => setMessage(e.target.value)}
+        placeholder="[ENTER MESSAGE]"
+        disabled={isSending}
+        className="w-full pl-8 pr-4 py-3 bg-black border-2 border-primary-500 text-primary-400 font-mono text-sm focus:outline-none focus:border-primary-400 disabled:border-gray-700 disabled:text-gray-600 disabled:shadow-none placeholder-primary-800 transition-all shadow-neon-input"
+        maxLength={500}
+      />
+    </div>
+
+    {/* Send button with loading state */}
+    <button
+      type="submit"
+      disabled={isSending || !message.trim()}
+      className="bg-primary-900 hover:bg-primary-800 disabled:bg-gray-900 text-primary-400 disabled:text-gray-700 font-mono text-sm px-8 py-3 border-2 border-primary-500 hover:border-primary-400 disabled:border-gray-700 disabled:shadow-none transition-all uppercase tracking-wider font-bold shadow-neon-button"
+    >
+      {isSending ? (
+        <span className="flex items-center gap-2">
+          <span className="terminal-cursor">█</span>
+          SENDING
+        </span>
+      ) : (
+        '▶ SEND'
+      )}
+    </button>
+  </div>
+
+  {/* Footer with status and character count */}
+  <div className="mt-2 flex justify-between items-center font-mono text-xs">
+    <span className="text-primary-700">[STATUS INDICATOR]</span>
+    <span className={message.length > 450 ? 'text-red-500' : 'text-primary-600'}>
+      {message.length}/500 CHARS
+    </span>
+  </div>
+</form>
+```
+
+**Key behaviors:**
+- Text stays in input while sending (input is disabled, not cleared)
+- Text only clears after successful send
+- On failure, text remains so user can retry
+- Character count turns red near limit
+
+**Status indicators by context:**
+- `[BLOCKCHAIN STORAGE ACTIVE]` - Channel messages
+- `[ENCRYPTED MESSAGE]` - Direct messages
+
 ---
 
 ## Interactive States
@@ -572,13 +632,23 @@ disabled:shadow-none
 <button disabled={isLoading}>
   {isLoading ? (
     <span className="flex items-center gap-2">
-      <span className="terminal-cursor">_</span>
+      <span className="terminal-cursor">█</span>
       LOADING...
     </span>
   ) : (
     'SUBMIT'
   )}
 </button>
+
+// For send buttons specifically
+{isSending ? (
+  <span className="flex items-center gap-2">
+    <span className="terminal-cursor">█</span>
+    SENDING
+  </span>
+) : (
+  '▶ SEND'
+)}
 ```
 
 ### Selected/Active
@@ -746,11 +816,13 @@ disabled:shadow-none
 |-----------|-------|
 | `>` | Input prompt prefix |
 | `#` | Channel prefix |
-| `[ ]` | Timestamps, status |
+| `[ ]` | Timestamps, status indicators |
 | `x` | Close button |
-| `_` | Cursor (animated) |
+| `█` | Loading cursor (animated) |
+| `▶` | Send/action button prefix |
 | `!` | Warning indicator |
-| `X` | Error indicator |
+| `⚠` | Error/danger indicator |
+| `✓` | Success indicator |
 
 ---
 

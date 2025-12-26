@@ -289,6 +289,33 @@ function App() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [viewMode, walletConfig.isReady, sessionKeys.hasLocalKey, userRegistry.profile?.exists]);
 
+  // Auto-create profile + session key for standalone wallet users
+  useEffect(() => {
+    const autoCreateProfile = async () => {
+      // Only for standalone mode, when wallet is ready, and no profile exists
+      if (walletMode !== 'standalone' || !walletConfig.isReady) return;
+      if (userRegistry.profile === null) return; // Still loading
+      if (userRegistry.profile.exists) return; // Already has profile
+
+      const toastId = toast.loading('Setting up your profile...');
+      try {
+        await userRegistry.createDefaultProfile();
+        toast.success('Profile created!', { id: toastId });
+
+        // Also initialize session key for encrypted DMs
+        if (!sessionKeys.hasLocalKey) {
+          await sessionKeys.initializeSessionKey();
+        }
+      } catch (err) {
+        toast.error('Failed to create profile', { id: toastId });
+        console.error('Auto-profile creation failed:', err);
+      }
+    };
+
+    autoCreateProfile();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [walletMode, walletConfig.isReady, userRegistry.profile, sessionKeys.hasLocalKey]);
+
   // Get display name helper
   const getDisplayName = useCallback(async (address: string): Promise<string> => {
     try {

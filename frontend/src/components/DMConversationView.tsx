@@ -25,7 +25,6 @@ export function DMConversationView({
 }: DMConversationViewProps) {
   const [inputValue, setInputValue] = useState('');
   const messagesEndRef = useRef<HTMLDivElement>(null);
-  const inputRef = useRef<HTMLTextAreaElement>(null);
 
   // Scroll to bottom when messages change
   useEffect(() => {
@@ -36,22 +35,13 @@ export function DMConversationView({
     e.preventDefault();
     if (!inputValue.trim() || !canSend || isSending) return;
 
-    const content = inputValue.trim();
-    setInputValue('');
-
     try {
-      await onSendMessage(content);
+      await onSendMessage(inputValue.trim());
+      // Only clear on success
+      setInputValue('');
     } catch (err) {
       console.error('Failed to send message:', err);
-      // Restore input on failure
-      setInputValue(content);
-    }
-  };
-
-  const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
-    if (e.key === 'Enter' && !e.shiftKey) {
-      e.preventDefault();
-      handleSubmit(e);
+      // Text stays in input on failure
     }
   };
 
@@ -193,25 +183,50 @@ export function DMConversationView({
       </div>
 
       {/* Input */}
-      <form onSubmit={handleSubmit} className="border-t-2 border-primary-500 p-4">
+      <form onSubmit={handleSubmit} className="border-t-2 border-primary-500 bg-black p-4">
         <div className="flex gap-2">
-          <textarea
-            ref={inputRef}
-            value={inputValue}
-            onChange={(e) => setInputValue(e.target.value)}
-            onKeyDown={handleKeyDown}
-            placeholder={canSend ? 'Type a message...' : 'Cannot send messages'}
-            disabled={!canSend || isSending}
-            rows={1}
-            className="flex-1 bg-black border-2 border-primary-700 px-4 py-2 text-primary-300 font-mono text-sm placeholder-primary-700 focus:outline-none focus:border-primary-500 focus:shadow-neon-input resize-none disabled:opacity-50"
-          />
+          <div className="flex-1 relative">
+            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-primary-500 font-mono text-sm">
+              &gt;
+            </span>
+            <input
+              type="text"
+              value={inputValue}
+              onChange={(e) => setInputValue(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' && !e.shiftKey) {
+                  e.preventDefault();
+                  handleSubmit(e);
+                }
+              }}
+              placeholder={canSend ? '[ENTER MESSAGE]' : '[CANNOT SEND]'}
+              disabled={!canSend || isSending}
+              className="w-full pl-8 pr-4 py-3 bg-black border-2 border-primary-500 text-primary-400 font-mono text-sm focus:outline-none focus:border-primary-400 disabled:border-gray-700 disabled:text-gray-600 disabled:shadow-none placeholder-primary-800 transition-all shadow-neon-input"
+              maxLength={1000}
+            />
+          </div>
           <button
             type="submit"
             disabled={!canSend || isSending || !inputValue.trim()}
-            className="px-6 py-2 bg-primary-950 border-2 border-primary-500 text-primary-500 font-mono text-sm hover:bg-primary-900 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            className="bg-primary-900 hover:bg-primary-800 disabled:bg-gray-900 text-primary-400 disabled:text-gray-700 font-mono text-sm px-8 py-3 border-2 border-primary-500 hover:border-primary-400 disabled:border-gray-700 disabled:shadow-none transition-all uppercase tracking-wider font-bold shadow-neon-button"
           >
-            {isSending ? '...' : 'SEND'}
+            {isSending ? (
+              <span className="flex items-center gap-2">
+                <span className="terminal-cursor">█</span>
+                SENDING
+              </span>
+            ) : (
+              '▶ SEND'
+            )}
           </button>
+        </div>
+        <div className="mt-2 flex justify-between items-center font-mono text-xs">
+          <span className="text-primary-700">
+            [ENCRYPTED MESSAGE]
+          </span>
+          <span className={`${inputValue.length > 900 ? 'text-red-500' : 'text-primary-600'}`}>
+            {inputValue.length}/1000 CHARS
+          </span>
         </div>
       </form>
     </div>

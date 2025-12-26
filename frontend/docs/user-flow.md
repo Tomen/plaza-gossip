@@ -27,10 +27,10 @@ For users who don't have MetaMask or prefer not to use it.
 5. User copies address and requests PAS tokens from faucet
 6. User clicks "Refresh" to update balance
 7. Once balance > 0, "Continue" button becomes enabled
-8. User clicks "Continue" → enters main chat UI in standalone mode
-9. User types a message and sends
-10. Profile is auto-created with address-derived name (e.g., "0x1a2b3c4d")
-11. Message is posted to the channel
+8. User clicks "Continue"
+9. Profile is auto-created with address-derived name (e.g., "0x1a2b3c4d")
+10. Session key is auto-created for encrypted DMs
+11. User enters main chat UI in standalone mode, ready to chat and receive DMs
 ```
 
 **Key files:**
@@ -145,6 +145,8 @@ For users who started with in-app wallet but want to use their browser wallet.
 
 When a user posts a message without an existing profile.
 
+**Note:** Standalone (in-app wallet) users get their profile auto-created immediately after wallet setup (see Flow 1). This flow primarily applies to browser wallet users who send a message before creating a profile via AccountModal.
+
 ```
 1. User clicks send on a message
 2. handleSendMessage checks if profile exists
@@ -152,7 +154,8 @@ When a user posts a message without an existing profile.
    a. Toast shows "Creating profile..."
    b. createDefaultProfile() is called on UserRegistry contract
    c. Profile is created with display name = "0x" + first 8 hex chars of address
-   d. Toast shows "Profile created!"
+   d. Session key is auto-created for encrypted DMs
+   e. Toast shows "Profile created!"
 4. Message is posted
 ```
 
