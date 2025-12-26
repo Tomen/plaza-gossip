@@ -32,6 +32,9 @@ contract UserRegistry {
     // ownerDelegates: owner => delegate => isActive
     mapping(address => mapping(address => bool)) public isDelegate;
 
+    // Session public keys for ECDH encryption (stored separately due to dynamic bytes)
+    mapping(address => bytes) public sessionPublicKeys;
+
     // ============ Events ============
 
     event ProfileCreated(address indexed owner);
@@ -45,6 +48,9 @@ contract UserRegistry {
     event DelegateAdded(address indexed owner, address indexed delegate);
     event DelegateRemoved(address indexed owner, address indexed delegate);
     event ProfileOwnershipTransferred(address indexed previousOwner, address indexed newOwner);
+
+    event SessionPublicKeyUpdated(address indexed owner);
+    event SessionPublicKeyCleared(address indexed owner);
 
     // ============ Modifiers ============
 
@@ -185,6 +191,32 @@ contract UserRegistry {
         emit DelegateRemoved(msg.sender, delegate);
     }
 
+    // ============ Session Public Key Management ============
+
+    /// @notice Set the session public key for ECDH encryption
+    /// @param sessionPubKey The uncompressed secp256k1 public key (64 bytes, without 0x04 prefix)
+    function setSessionPublicKey(bytes calldata sessionPubKey) external onlyProfileOwner {
+        require(sessionPubKey.length == 64, "Invalid public key length");
+        sessionPublicKeys[msg.sender] = sessionPubKey;
+        emit SessionPublicKeyUpdated(msg.sender);
+    }
+
+    /// @notice Clear the session public key
+    function clearSessionPublicKey() external onlyProfileOwner {
+        delete sessionPublicKeys[msg.sender];
+        emit SessionPublicKeyCleared(msg.sender);
+    }
+
+    /// @notice Get the session public key for a user
+    function getSessionPublicKey(address owner) external view returns (bytes memory) {
+        return sessionPublicKeys[owner];
+    }
+
+    /// @notice Check if a user has a session public key set
+    function hasSessionPublicKey(address owner) external view returns (bool) {
+        return sessionPublicKeys[owner].length > 0;
+    }
+
     // ============ Profile Ownership Transfer ============
 
     /// @notice Transfers profile ownership to a new address
@@ -208,9 +240,15 @@ contract UserRegistry {
             profileLinks[newOwner].push(oldLinks[i]);
         }
 
-        // Delete old profile and links
+        // Copy session public key if set
+        if (sessionPublicKeys[msg.sender].length > 0) {
+            sessionPublicKeys[newOwner] = sessionPublicKeys[msg.sender];
+        }
+
+        // Delete old profile, links, and session key
         delete profiles[msg.sender];
         delete profileLinks[msg.sender];
+        delete sessionPublicKeys[msg.sender];
 
         emit ProfileOwnershipTransferred(msg.sender, newOwner);
     }

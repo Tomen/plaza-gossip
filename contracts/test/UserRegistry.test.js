@@ -306,5 +306,97 @@ describe("UserRegistry", function () {
       const links = await userRegistry.getLinks(addr1.address);
       expect(links.length).to.equal(3);
     });
+
+    it("Should transfer session public key", async function () {
+      // Create a 64-byte session public key
+      const sessionPubKey = ethers.randomBytes(64);
+      await userRegistry.setSessionPublicKey(sessionPubKey);
+
+      await userRegistry.transferProfileOwnership(addr1.address);
+
+      // Check new owner has the session key
+      const newSessionKey = await userRegistry.getSessionPublicKey(addr1.address);
+      expect(newSessionKey).to.equal(ethers.hexlify(sessionPubKey));
+
+      // Check old owner no longer has session key
+      const oldSessionKey = await userRegistry.getSessionPublicKey(owner.address);
+      expect(oldSessionKey).to.equal("0x");
+    });
+  });
+
+  describe("Session Public Key Management", function () {
+    beforeEach(async function () {
+      await userRegistry.createProfile("Alice", "Hello world");
+    });
+
+    it("Should set session public key", async function () {
+      const sessionPubKey = ethers.randomBytes(64);
+
+      await expect(userRegistry.setSessionPublicKey(sessionPubKey))
+        .to.emit(userRegistry, "SessionPublicKeyUpdated")
+        .withArgs(owner.address);
+
+      const storedKey = await userRegistry.getSessionPublicKey(owner.address);
+      expect(storedKey).to.equal(ethers.hexlify(sessionPubKey));
+    });
+
+    it("Should check hasSessionPublicKey correctly", async function () {
+      expect(await userRegistry.hasSessionPublicKey(owner.address)).to.be.false;
+
+      const sessionPubKey = ethers.randomBytes(64);
+      await userRegistry.setSessionPublicKey(sessionPubKey);
+
+      expect(await userRegistry.hasSessionPublicKey(owner.address)).to.be.true;
+    });
+
+    it("Should update session public key", async function () {
+      const sessionPubKey1 = ethers.randomBytes(64);
+      const sessionPubKey2 = ethers.randomBytes(64);
+
+      await userRegistry.setSessionPublicKey(sessionPubKey1);
+      await userRegistry.setSessionPublicKey(sessionPubKey2);
+
+      const storedKey = await userRegistry.getSessionPublicKey(owner.address);
+      expect(storedKey).to.equal(ethers.hexlify(sessionPubKey2));
+    });
+
+    it("Should clear session public key", async function () {
+      const sessionPubKey = ethers.randomBytes(64);
+      await userRegistry.setSessionPublicKey(sessionPubKey);
+
+      await expect(userRegistry.clearSessionPublicKey())
+        .to.emit(userRegistry, "SessionPublicKeyCleared")
+        .withArgs(owner.address);
+
+      const storedKey = await userRegistry.getSessionPublicKey(owner.address);
+      expect(storedKey).to.equal("0x");
+      expect(await userRegistry.hasSessionPublicKey(owner.address)).to.be.false;
+    });
+
+    it("Should reject invalid public key length", async function () {
+      const shortKey = ethers.randomBytes(32);
+      await expect(userRegistry.setSessionPublicKey(shortKey))
+        .to.be.revertedWith("Invalid public key length");
+
+      const longKey = ethers.randomBytes(65);
+      await expect(userRegistry.setSessionPublicKey(longKey))
+        .to.be.revertedWith("Invalid public key length");
+    });
+
+    it("Should reject set from non-profile-owner", async function () {
+      const sessionPubKey = ethers.randomBytes(64);
+      await expect(userRegistry.connect(addr1).setSessionPublicKey(sessionPubKey))
+        .to.be.revertedWith("Profile does not exist");
+    });
+
+    it("Should reject clear from non-profile-owner", async function () {
+      await expect(userRegistry.connect(addr1).clearSessionPublicKey())
+        .to.be.revertedWith("Profile does not exist");
+    });
+
+    it("Should return empty bytes for user without session key", async function () {
+      const storedKey = await userRegistry.getSessionPublicKey(addr1.address);
+      expect(storedKey).to.equal("0x");
+    });
   });
 });
