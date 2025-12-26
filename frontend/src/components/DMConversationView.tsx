@@ -11,6 +11,8 @@ interface DMConversationViewProps {
   otherParticipantAddress: string;
   canSend: boolean;
   noSessionKey: boolean;
+  isParticipant: boolean;
+  participantNames?: { name1: string; name2: string } | null;
 }
 
 export function DMConversationView({
@@ -22,6 +24,8 @@ export function DMConversationView({
   otherParticipantAddress,
   canSend,
   noSessionKey,
+  isParticipant,
+  participantNames,
 }: DMConversationViewProps) {
   const [inputValue, setInputValue] = useState('');
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -78,6 +82,35 @@ export function DMConversationView({
       groupedMessages[groupedMessages.length - 1].messages.push(msg);
     }
   });
+
+  // Non-participant view - show encrypted conversation notice
+  if (!isParticipant) {
+    return (
+      <div className="h-full flex flex-col bg-black">
+        <div className="flex-1 flex items-center justify-center p-8">
+          <div className="text-center max-w-md">
+            <div className="text-primary-500 text-4xl mb-6">🔒</div>
+            <h2 className="text-xl font-bold text-primary-500 text-shadow-neon font-mono mb-4">
+              ENCRYPTED CONVERSATION
+            </h2>
+            <p className="text-primary-400 font-mono text-sm mb-6">
+              This is an encrypted conversation between{' '}
+              <span className="text-accent-400 font-semibold">
+                {participantNames?.name1 || '...'}
+              </span>
+              {' '}and{' '}
+              <span className="text-accent-400 font-semibold">
+                {participantNames?.name2 || '...'}
+              </span>
+            </p>
+            <p className="text-primary-600 font-mono text-xs">
+              Only the participants can view the messages in this conversation.
+            </p>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="h-full flex flex-col bg-black">

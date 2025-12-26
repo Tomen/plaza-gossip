@@ -21,7 +21,7 @@ async function main() {
   }
 
   // 1. Deploy UserRegistry
-  console.log("\n1/4 Deploying UserRegistry...");
+  console.log("\n1/3 Deploying UserRegistry...");
   const UserRegistry = await hre.ethers.getContractFactory("UserRegistry");
   const userRegistry = await UserRegistry.deploy();
   await userRegistry.waitForDeployment();
@@ -29,7 +29,7 @@ async function main() {
   console.log(`   ✅ UserRegistry deployed to: ${userRegistryAddress}`);
 
   // 2. Deploy ChannelRegistry
-  console.log("\n2/4 Deploying ChannelRegistry...");
+  console.log("\n2/3 Deploying ChannelRegistry...");
   const ChannelRegistry = await hre.ethers.getContractFactory("ChannelRegistry");
   const channelRegistry = await ChannelRegistry.deploy(userRegistryAddress);
   await channelRegistry.waitForDeployment();
@@ -37,25 +37,12 @@ async function main() {
   console.log(`   ✅ ChannelRegistry deployed to: ${channelRegistryAddress}`);
 
   // 3. Deploy DMRegistry
-  console.log("\n3/4 Deploying DMRegistry...");
+  console.log("\n3/3 Deploying DMRegistry...");
   const DMRegistry = await hre.ethers.getContractFactory("DMRegistry");
   const dmRegistry = await DMRegistry.deploy(userRegistryAddress);
   await dmRegistry.waitForDeployment();
   const dmRegistryAddress = await dmRegistry.getAddress();
   console.log(`   ✅ DMRegistry deployed to: ${dmRegistryAddress}`);
-
-  // 4. Create default #general channel
-  console.log("\n4/4 Creating #general channel...");
-  const tx = await channelRegistry.createChannel(
-    "general",
-    "General discussion",
-    0 // Open posting mode
-  );
-  await tx.wait();
-
-  // Get the created channel address
-  const channelInfo = await channelRegistry.getChannel(0);
-  console.log(`   ✅ #general channel created at: ${channelInfo.channelAddress}`);
 
   // Summary
   console.log("\n" + "=".repeat(60));
@@ -65,11 +52,9 @@ async function main() {
   console.log(`  UserRegistry:    ${userRegistryAddress}`);
   console.log(`  ChannelRegistry: ${channelRegistryAddress}`);
   console.log(`  DMRegistry:      ${dmRegistryAddress}`);
-  console.log(`  #general:        ${channelInfo.channelAddress}`);
   console.log("\nOpen the chat at:");
   console.log(`  http://localhost:5173/?registry=${channelRegistryAddress}`);
-  console.log("\nOr directly access #general:");
-  console.log(`  http://localhost:5173/?channel=${channelInfo.channelAddress}`);
+  console.log("\nNote: Create channels via the UI or register existing ones with migrate-channels.js");
 
   // Save deployment info to deployments.json
   console.log("\n" + "=".repeat(60));
@@ -115,9 +100,6 @@ async function main() {
     userRegistry: userRegistryAddress,
     channelRegistry: channelRegistryAddress,
     dmRegistry: dmRegistryAddress,
-    channels: {
-      general: channelInfo.channelAddress,
-    },
     deployedAt: new Date().toISOString(),
   };
 

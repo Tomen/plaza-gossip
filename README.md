@@ -132,10 +132,35 @@ npm install
 npm run dev
 ```
 
-The frontend automatically loads contract addresses from `deployments.json` (created during deployment). URL parameters can override:
+The frontend automatically loads contract addresses from `deployments.json` (created during deployment).
+
+#### URL Deep Linking
+
+Share direct links to channels or DM conversations:
+
+```
+http://localhost:5173/?channel=0xChannelAddress     # Open specific channel
+http://localhost:5173/?dm=0xConversationAddress     # Open specific DM
+```
+
+URL parameters:
+- `?channel=0x...` - Direct link to specific channel
+- `?dm=0x...` - Direct link to specific DM conversation
 - `?registry=0x...` - Override channel registry address
 - `?dmRegistry=0x...` - Override DM registry address
-- `?channel=0x...` - Direct link to specific channel
+
+**Note:** When viewing a DM conversation you're not a participant in, you'll see a notice that it's an encrypted conversation between the two participants.
+
+#### Environment Configuration
+
+Copy `.env.example` to `.env` and configure as needed:
+
+```bash
+cp .env.example .env
+```
+
+Available options:
+- `VITE_SHOW_REGISTRY_IN_URL` - Set to `true` to include registry addresses in URLs (useful for multi-network deployments). Default: `false`
 
 ### MetaMask Configuration
 

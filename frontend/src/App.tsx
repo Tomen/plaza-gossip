@@ -12,6 +12,7 @@ import { useDMConversation } from './hooks/useDMConversation';
 import { useSessionKeys } from './hooks/useSessionKeys';
 import { useDeployments } from './hooks/useDeployments';
 import { hasStandaloneWallet } from './utils/appWallet';
+import { truncateAddress } from './utils/formatters';
 import { AccountButton } from './components/AccountButton';
 import { AccountModal } from './components/AccountModal';
 import { ChatFeed } from './components/ChatFeed';
@@ -41,6 +42,16 @@ function App() {
   const registryAddress = urlParams.get('registry') || deployments?.channelRegistry || null;
   const dmRegistryAddress = urlParams.get('dmRegistry') || deployments?.dmRegistry || null;
   const directChannelAddress = urlParams.get('channel');
+  const directDMAddress = urlParams.get('dm');
+
+  // Track if user provided registry params in initial URL (for URL persistence)
+  const [userProvidedRegistry] = useState(() => {
+    const params = new URLSearchParams(window.location.search);
+    return params.has('registry') || params.has('dmRegistry');
+  });
+
+  // Determine if we should show registry in URL based on config or user input
+  const showRegistryInUrl = import.meta.env.VITE_SHOW_REGISTRY_IN_URL === 'true' || userProvidedRegistry;
 
   // Wallet mode: 'browser' | 'standalone' | 'none'
   // Persisted in localStorage so disconnect state survives page refresh
@@ -200,12 +211,16 @@ function App() {
     }
   }, [selectedChannel]);
 
-  // DM-related state - restore from localStorage
+  // DM-related state - URL param takes priority, then localStorage
   const [viewMode, setViewMode] = useState<ViewMode>(() => {
+    // URL dm param implies DM view mode
+    if (directDMAddress) return 'dms';
     const stored = localStorage.getItem('viewMode') as ViewMode | null;
     return stored === 'dms' ? 'dms' : 'channels';
   });
   const [selectedConversation, setSelectedConversation] = useState<string | null>(() => {
+    // URL dm param takes priority
+    if (directDMAddress) return directDMAddress;
     return localStorage.getItem('selectedConversation');
   });
 
@@ -219,6 +234,36 @@ function App() {
       localStorage.setItem('selectedConversation', selectedConversation);
     }
   }, [selectedConversation]);
+
+  // Update URL when channel/conversation selection changes
+  useEffect(() => {
+    const url = new URL(window.location.href);
+
+    // Only include registry if config enabled or user originally provided it
+    if (showRegistryInUrl) {
+      if (registryAddress) url.searchParams.set('registry', registryAddress);
+      if (dmRegistryAddress) url.searchParams.set('dmRegistry', dmRegistryAddress);
+    } else {
+      url.searchParams.delete('registry');
+      url.searchParams.delete('dmRegistry');
+    }
+
+    // Set channel or dm param based on view mode
+    if (viewMode === 'channels' && selectedChannel) {
+      url.searchParams.set('channel', selectedChannel);
+      url.searchParams.delete('dm');
+    } else if (viewMode === 'dms' && selectedConversation) {
+      url.searchParams.set('dm', selectedConversation);
+      url.searchParams.delete('channel');
+    } else {
+      // No selection - remove both
+      url.searchParams.delete('channel');
+      url.searchParams.delete('dm');
+    }
+
+    window.history.replaceState({}, '', url.toString());
+  }, [viewMode, selectedChannel, selectedConversation, showRegistryInUrl, registryAddress, dmRegistryAddress]);
+
   const [showNewDMModal, setShowNewDMModal] = useState(false);
   const [dmOtherParticipant, setDmOtherParticipant] = useState<string | null>(null);
   const [dmOtherPublicKey, setDmOtherPublicKey] = useState<string | null>(null);
@@ -277,6 +322,42 @@ function App() {
       setDmOtherParticipantName(null);
     }
   }, [selectedConversation, dmConversation.participant1, dmConversation.participant2, walletConfig.activeAddress, userRegistry]);
+
+  // Check if current user is a participant in the selected DM conversation
+  const isCurrentUserDMParticipant = useMemo(() => {
+    if (!selectedConversation || !walletConfig.activeAddress) return true; // Default to true when no data
+    if (!dmConversation.participant1 || !dmConversation.participant2) return true; // Still loading
+    const addr = walletConfig.activeAddress.toLowerCase();
+    return (
+      dmConversation.participant1.toLowerCase() === addr ||
+      dmConversation.participant2.toLowerCase() === addr
+    );
+  }, [selectedConversation, walletConfig.activeAddress, dmConversation.participant1, dmConversation.participant2]);
+
+  // State for both participant names (when user is not a participant)
+  const [dmBothParticipantNames, setDmBothParticipantNames] = useState<{ name1: string; name2: string } | null>(null);
+
+  // Fetch both participant names when viewing DM as non-participant
+  useEffect(() => {
+    if (!isCurrentUserDMParticipant && dmConversation.participant1 && dmConversation.participant2) {
+      Promise.all([
+        userRegistry.getProfile(dmConversation.participant1),
+        userRegistry.getProfile(dmConversation.participant2)
+      ]).then(([profile1, profile2]) => {
+        setDmBothParticipantNames({
+          name1: profile1.exists ? profile1.displayName : truncateAddress(dmConversation.participant1!),
+          name2: profile2.exists ? profile2.displayName : truncateAddress(dmConversation.participant2!)
+        });
+      }).catch(() => {
+        setDmBothParticipantNames({
+          name1: truncateAddress(dmConversation.participant1!),
+          name2: truncateAddress(dmConversation.participant2!)
+        });
+      });
+    } else {
+      setDmBothParticipantNames(null);
+    }
+  }, [isCurrentUserDMParticipant, dmConversation.participant1, dmConversation.participant2, userRegistry]);
 
   // Auto-initialize session key when entering DMs
   useEffect(() => {
@@ -710,8 +791,10 @@ function App() {
                 onSendMessage={handleSendDMMessage}
                 otherParticipantName={dmOtherParticipantName}
                 otherParticipantAddress={dmOtherParticipant || ''}
-                canSend={!!dmOtherPublicKey && sessionKeys.hasLocalKey && !!walletConfig.activeAddress}
+                canSend={!!dmOtherPublicKey && sessionKeys.hasLocalKey && !!walletConfig.activeAddress && isCurrentUserDMParticipant}
                 noSessionKey={!dmOtherPublicKey}
+                isParticipant={isCurrentUserDMParticipant}
+                participantNames={dmBothParticipantNames}
               />
             ) : (
               <div className="flex-1 flex items-center justify-center">
