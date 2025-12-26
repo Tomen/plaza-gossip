@@ -36,7 +36,7 @@ jobs:
       - name: Build with auto-redirect
         working-directory: ./frontend
         env:
-          VITE_BASE_PATH: /image-store/
+          VITE_BASE_PATH: /plaza-gossip/
         run: npm run build:deploy
 
       - name: Upload artifact
