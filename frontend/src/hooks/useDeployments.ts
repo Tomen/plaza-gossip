@@ -36,7 +36,9 @@ export function useDeployments(): UseDeploymentsReturn {
     const loadDeployments = async () => {
       try {
         // Try to fetch deployments.json from public folder
-        const response = await fetch('/deployments.json');
+        // Use import.meta.env.BASE_URL to handle GitHub Pages base path
+        const basePath = import.meta.env.BASE_URL || '/';
+        const response = await fetch(`${basePath}deployments.json`);
         if (!response.ok) {
           throw new Error(`Failed to load deployments: ${response.status}`);
         }

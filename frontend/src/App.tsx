@@ -236,9 +236,9 @@ function App() {
         : dmConversation.participant1;
       setDmOtherParticipant(otherParticipant);
 
-      // Load their public key
+      // Load their public key (empty "0x" means no key set)
       userRegistry.getSessionPublicKey(otherParticipant)
-        .then(setDmOtherPublicKey)
+        .then(key => setDmOtherPublicKey(key && key.length > 2 ? key : null))
         .catch(() => setDmOtherPublicKey(null));
 
       // Load their display name

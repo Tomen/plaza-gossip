@@ -266,7 +266,9 @@ export function useDMConversation({
   const sendMessage = useCallback(
     async (plaintext: string) => {
       if (!enabled) throw new Error("Not enabled");
-      if (!theirPublicKey) throw new Error("Recipient has no session key");
+      if (!theirPublicKey || theirPublicKey.length <= 2) {
+        throw new Error("Recipient has no session key set up");
+      }
 
       const contract = await getWriteContract();
       if (!contract) throw new Error("Contract not available");
@@ -275,9 +277,16 @@ export function useDMConversation({
       try {
         // Encrypt the message using ECDH shared secret
         const myPrivateKey = getCurrentPrivateKeyBytes();
+        const theirKeyBytes = hexToBytes(theirPublicKey);
+
+        // Validate public key length (should be 64 bytes for uncompressed secp256k1 without prefix)
+        if (theirKeyBytes.length !== 64) {
+          throw new Error(`Invalid recipient public key length: ${theirKeyBytes.length}, expected 64`);
+        }
+
         const sharedSecret = await deriveSharedSecret(
           myPrivateKey,
-          hexToBytes(theirPublicKey)
+          theirKeyBytes
         );
 
         const encryptedContent = await encrypt(sharedSecret, plaintext);

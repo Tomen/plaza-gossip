@@ -33,6 +33,10 @@ interface AccountModalProps {
   walletMode?: WalletMode;
   onExportPrivateKey?: () => void;
   onConnectBrowserWallet?: () => void;
+
+  // Session key (for encrypted DMs)
+  hasSessionKey?: boolean;
+  onInitializeSessionKey?: () => Promise<void>;
 }
 
 export function AccountModal({
@@ -54,6 +58,8 @@ export function AccountModal({
   walletMode = 'none',
   onExportPrivateKey,
   onConnectBrowserWallet,
+  hasSessionKey = false,
+  onInitializeSessionKey,
 }: AccountModalProps) {
   const isStandaloneMode = walletMode === 'standalone';
   const { theme, setTheme } = useTheme();
@@ -102,6 +108,16 @@ export function AccountModal({
         await onCreateProfile(displayName.trim(), bio.trim());
       }
       toast.success(profile?.exists ? 'Profile updated!' : 'Profile created!', { id: toastId });
+
+      // Auto-initialize session key for encrypted DMs if not already set
+      if (!hasSessionKey && onInitializeSessionKey) {
+        try {
+          await onInitializeSessionKey();
+        } catch (err) {
+          // Don't block on session key failure - can be created later
+          console.error('Failed to initialize session key:', err);
+        }
+      }
     } catch (err) {
       toast.error(err instanceof Error ? err.message : 'Failed to save profile', { id: toastId });
     } finally {
