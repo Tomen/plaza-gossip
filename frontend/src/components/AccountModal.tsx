@@ -192,7 +192,7 @@ export function AccountModal({
             <h3 className="text-sm font-bold text-accent-400 font-mono mb-3">
               {isStandaloneMode ? 'IN-APP WALLET' : 'BROWSER WALLET'}
             </h3>
-            <div className="border-2 border-primary-700 p-4">
+            <div className="border border-primary-700 p-4">
               {walletAddress ? (
                 <div className="space-y-3">
                   <div className="flex items-center justify-between font-mono text-sm">
@@ -248,7 +248,7 @@ export function AccountModal({
           {walletAddress && (
             <div>
               <h3 className="text-sm font-bold text-accent-400 font-mono mb-3">PROFILE</h3>
-              <form onSubmit={handleProfileSubmit} className="border-2 border-primary-700 p-4 space-y-4">
+              <form onSubmit={handleProfileSubmit} className="border border-primary-700 p-4 space-y-4">
                 <div>
                   <label className="block text-primary-400 font-mono text-sm mb-1">
                     DISPLAY NAME *
@@ -300,7 +300,7 @@ export function AccountModal({
           {walletAddress && (
             <div>
               <h3 className="text-sm font-bold text-accent-400 font-mono mb-3">THEME</h3>
-              <div className="border-2 border-primary-700 p-4">
+              <div className="border border-primary-700 p-4">
                 <div className="flex gap-2">
                   <button
                     onClick={() => setTheme('neon')}
@@ -346,7 +346,7 @@ export function AccountModal({
               </h3>
 
               {!isAuthorized ? (
-                <div className="border-2 border-primary-700 p-4 space-y-3">
+                <div className="border border-primary-700 p-4 space-y-3">
                   <div className="font-mono text-sm text-primary-400">
                     Status: <span className="text-yellow-500">Not Set Up</span>
                   </div>
@@ -362,7 +362,7 @@ export function AccountModal({
                   </button>
                 </div>
               ) : (
-                <div className="border-2 border-primary-700 p-4 space-y-4">
+                <div className="border border-primary-700 p-4 space-y-4">
                   <div className="font-mono text-sm space-y-2">
                     <div className="flex justify-between text-primary-400">
                       <span>Address:</span>

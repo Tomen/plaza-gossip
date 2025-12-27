@@ -23,9 +23,23 @@ export function WalletChoiceModal({
         <h2 className="text-xl font-bold text-primary-500 text-shadow-neon mb-2 font-mono text-center">
           ▄▄▄ CONNECT TO CHAT ▄▄▄
         </h2>
-        <p className="text-primary-600 font-mono text-sm text-center mb-6">
+        <p className="text-primary-600 font-mono text-sm text-center mb-4">
           Choose how you want to connect
         </p>
+
+        {/* Warning Banner */}
+        <div className="mb-6 p-3 border border-red-700 bg-red-950 bg-opacity-30">
+          <div className="flex items-start gap-2">
+            <span className="text-red-500 text-lg">⚠</span>
+            <div className="font-mono text-xs text-red-400">
+              <p className="font-bold text-red-300 mb-1">TECH DEMO - USE AT YOUR OWN RISK</p>
+              <ul className="space-y-1 text-red-500">
+                <li>• Messages are stored permanently on the blockchain</li>
+                <li>• If your session key is compromised, your private messages may be exposed</li>
+              </ul>
+            </div>
+          </div>
+        </div>
 
         <div className="space-y-4">
           {/* Browser Wallet Option */}
@@ -81,7 +95,7 @@ export function WalletChoiceModal({
         </div>
 
         {/* Info section */}
-        <div className="mt-6 p-3 border-2 border-yellow-700 bg-yellow-950 bg-opacity-20">
+        <div className="mt-6 p-3 border border-yellow-700 bg-yellow-950 bg-opacity-20">
           <div className="flex items-start gap-2">
             <span className="text-yellow-500">!</span>
             <div className="font-mono text-xs text-yellow-600">

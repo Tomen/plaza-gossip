@@ -89,7 +89,7 @@ export function CreateChannelModal({ isOpen, onClose, onCreate, onCreateUnlisted
           </h2>
 
           <div className="space-y-4">
-            <div className="p-3 bg-yellow-950 border-2 border-yellow-600">
+            <div className="p-3 bg-yellow-950 border border-yellow-600">
               <p className="text-yellow-400 font-mono text-sm">
                 ⚠️ This channel is NOT saved in the registry. Save the address or URL below!
               </p>

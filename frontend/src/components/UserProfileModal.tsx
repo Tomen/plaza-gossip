@@ -139,7 +139,7 @@ export function UserProfileModal({
                 <label className="block text-primary-600 font-mono text-xs mb-1">
                   DISPLAY NAME
                 </label>
-                <div className="border-2 border-primary-700 p-3 bg-primary-950">
+                <div className="border border-primary-700 p-3 bg-primary-950">
                   <span className="text-primary-300 font-mono text-sm">
                     {profile.displayName || '(unnamed)'}
                   </span>
@@ -152,7 +152,7 @@ export function UserProfileModal({
                   <label className="block text-primary-600 font-mono text-xs mb-1">
                     BIO
                   </label>
-                  <div className="border-2 border-primary-700 p-3 bg-primary-950">
+                  <div className="border border-primary-700 p-3 bg-primary-950">
                     <span className="text-primary-300 font-mono text-sm whitespace-pre-wrap">
                       {profile.bio}
                     </span>
@@ -165,7 +165,7 @@ export function UserProfileModal({
                 <label className="block text-primary-600 font-mono text-xs mb-1">
                   WALLET ADDRESS
                 </label>
-                <div className="border-2 border-primary-700 p-3 bg-primary-950 flex items-center justify-between">
+                <div className="border border-primary-700 p-3 bg-primary-950 flex items-center justify-between">
                   <span className="text-accent-400 font-mono text-sm">
                     {truncateAddress(userAddress)}
                   </span>

@@ -202,7 +202,7 @@ export function ProfileView({
                   <h3 className="text-sm font-bold text-accent-400 mb-2 font-mono">
                     BIO
                   </h3>
-                  <div className="border-2 border-primary-700 p-4 bg-primary-950">
+                  <div className="border border-primary-700 p-4 bg-primary-950">
                     <p className="text-primary-300 text-sm font-mono whitespace-pre-wrap">
                       {profile.bio}
                     </p>

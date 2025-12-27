@@ -102,7 +102,7 @@ export function InAppWalletSetup({
 
         {/* Faucet Instructions */}
         {!hasBalance && (
-          <div className="mb-6 p-4 border-2 border-accent-500 bg-accent-950 bg-opacity-20">
+          <div className="mb-6 p-4 border border-accent-500 bg-accent-950 bg-opacity-20">
             <h3 className="text-accent-400 font-mono font-bold text-sm mb-2">
               STEP 1: GET TEST TOKENS
             </h3>
@@ -125,7 +125,7 @@ export function InAppWalletSetup({
         )}
 
         {/* Warning */}
-        <div className="mb-6 p-3 border-2 border-yellow-700 bg-yellow-950 bg-opacity-20">
+        <div className="mb-6 p-3 border border-yellow-700 bg-yellow-950 bg-opacity-20">
           <div className="flex items-start gap-2">
             <span className="text-yellow-500">!</span>
             <div className="font-mono text-xs text-yellow-600">

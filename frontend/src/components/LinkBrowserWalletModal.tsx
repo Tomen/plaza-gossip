@@ -41,7 +41,8 @@ export function LinkBrowserWalletModal({
         .catch(() => setBrowserHasProfile(false))
         .finally(() => setIsCheckingProfile(false));
     }
-  }, [isOpen, browserAddress, checkBrowserHasProfile]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isOpen, browserAddress]); // Intentionally exclude checkBrowserHasProfile to prevent re-renders
 
   if (!isOpen) return null;
 
@@ -108,7 +109,7 @@ export function LinkBrowserWalletModal({
         </p>
 
         {/* Wallet Info */}
-        <div className="mb-4 p-3 border-2 border-accent-700 bg-accent-950 bg-opacity-20">
+        <div className="mb-4 p-3 border border-accent-700 bg-accent-950 bg-opacity-20">
           <div className="font-mono text-xs space-y-1">
             <div className="flex justify-between">
               <span className="text-accent-400">IN-APP:</span>
@@ -143,7 +144,7 @@ export function LinkBrowserWalletModal({
           <div className="space-y-4 mb-6">
             {/* Warning when both have profiles */}
             {needsAbandonConfirm && (
-              <div className="p-3 border-2 border-yellow-600 bg-yellow-950 bg-opacity-20">
+              <div className="p-3 border border-yellow-600 bg-yellow-950 bg-opacity-20">
                 <div className="flex items-start gap-2">
                   <span className="text-yellow-500 text-lg">!</span>
                   <div className="font-mono text-xs text-yellow-600">
@@ -169,7 +170,7 @@ export function LinkBrowserWalletModal({
                         SWITCH TO BROWSER WALLET
                       </h3>
                       {!needsAbandonConfirm && (
-                        <span className="px-2 py-0.5 bg-accent-900 text-accent-400 font-mono text-xs border-2 border-accent-500">
+                        <span className="px-2 py-0.5 bg-accent-900 text-accent-400 font-mono text-xs border border-accent-500">
                           RECOMMENDED
                         </span>
                       )}

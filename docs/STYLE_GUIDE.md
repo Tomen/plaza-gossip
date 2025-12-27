@@ -206,30 +206,42 @@ Always use `font-mono` class on text elements.
 
 ### Border Patterns
 
-**Important:** Always use `border-2` for consistency. Never use `border` (1px) on interactive elements.
+**Important:** Border thickness distinguishes interactive from non-interactive elements:
+- `border-2` (2px) - Interactive elements only (buttons, clickable cards, modals, inputs)
+- `border` (1px) - Non-interactive containers (info boxes, warning boxes, section containers)
 
 ```tsx
-// Primary border (main interactive elements, modals, buttons)
-<div className="border-2 border-primary-500">
+// INTERACTIVE ELEMENTS - use border-2
+// Buttons
+<button className="border-2 border-primary-500">
 
-// Section containers (info boxes, form sections)
-<div className="border-2 border-primary-700">
+// Modal containers
+<div className="border-2 border-primary-500 bg-black p-6">
 
-// Layout dividers
+// Inputs
+<input className="border-2 border-primary-500">
+
+// NON-INTERACTIVE CONTAINERS - use border (1px)
+// Section containers (form sections, display areas)
+<div className="border border-primary-700 p-4">
+
+// Warning/info boxes
+<div className="border border-yellow-600 bg-yellow-950 bg-opacity-20 p-3">
+<div className="border border-red-700 bg-red-950 bg-opacity-30 p-3">
+<div className="border border-accent-500 bg-accent-950 bg-opacity-20 p-3">
+
+// Layout dividers (still use border-2 for visual weight)
 <div className="border-b-2 border-primary-500">  // Horizontal
 <div className="border-r-2 border-primary-500">  // Vertical
-
-// Sidebar dividers (can use thinner)
-<div className="border-b-2 border-primary-700">
 ```
 
 **Border colors by purpose:**
-- `border-primary-500` - Interactive elements, main borders
-- `border-primary-700` - Container sections, info boxes
-- `border-accent-500` - Accent/highlighted elements
-- `border-red-500` - Danger/error states
-- `border-yellow-600` - Warning states
-- `border-green-500` - Success states
+- `border-primary-500` - Interactive elements, main borders, modals
+- `border-primary-700` - Non-interactive section containers
+- `border-accent-500` - Accent/highlighted interactive elements
+- `border-red-500/700` - Danger/error states (500 for buttons, 700 for info boxes)
+- `border-yellow-600/700` - Warning states (similar pattern)
+- `border-green-500/700` - Success states (similar pattern)
 - `border-gray-600` - Neutral/cancel buttons
 
 ### Box Shadows (Neon Glow)
@@ -462,7 +474,7 @@ All buttons must include background, hover, and disabled states for consistency.
   <h3 className="text-sm font-bold text-accent-400 font-mono mb-3">
     SECTION TITLE
   </h3>
-  <div className="border-2 border-primary-700 p-4 space-y-3">
+  <div className="border border-primary-700 p-4 space-y-3">
     {/* Form fields */}
   </div>
 </div>
@@ -470,11 +482,11 @@ All buttons must include background, hover, and disabled states for consistency.
 
 ### Status/Info Boxes
 
-Semantic colors are allowed and encouraged for status indicators:
+Semantic colors are allowed and encouraged for status indicators. Use `border` (1px) for info boxes to distinguish from interactive buttons:
 
 ```tsx
 // Warning
-<div className="p-3 border-2 border-yellow-600 bg-yellow-900 bg-opacity-30">
+<div className="p-3 border border-yellow-600 bg-yellow-900 bg-opacity-30">
   <div className="flex items-start gap-2">
     <span className="text-yellow-500">!</span>
     <div className="font-mono text-xs text-yellow-600">
@@ -485,19 +497,19 @@ Semantic colors are allowed and encouraged for status indicators:
 </div>
 
 // Error/Danger
-<div className="p-3 border-2 border-red-500 bg-red-900 bg-opacity-20">
+<div className="p-3 border border-red-700 bg-red-900 bg-opacity-20">
   <span className="text-red-500">⚠</span>
   <span className="text-red-400">Error message</span>
 </div>
 
 // Success
-<div className="p-3 border-2 border-green-500 bg-green-900 bg-opacity-20">
+<div className="p-3 border border-green-700 bg-green-900 bg-opacity-20">
   <span className="text-green-500">✓</span>
   <span className="text-green-400">Success message</span>
 </div>
 
 // Info (uses accent colors)
-<div className="p-3 border-2 border-accent-700 bg-accent-950 bg-opacity-20">
+<div className="p-3 border border-accent-700 bg-accent-950 bg-opacity-20">
   <span className="text-accent-400">Info message</span>
 </div>
 ```

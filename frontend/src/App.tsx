@@ -458,7 +458,7 @@ function App() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [walletMode, walletConfig.isReady, userRegistry.profile, sessionKeys.hasLocalKey]);
 
-  // Get display name helper
+  // Get display name helper - depends only on getProfile to avoid frequent recreation
   const getDisplayName = useCallback(async (address: string): Promise<string> => {
     try {
       const profile = await userRegistry.getProfile(address);
@@ -466,7 +466,7 @@ function App() {
     } catch {
       return '';
     }
-  }, [userRegistry]);
+  }, [userRegistry.getProfile]);
 
   // Current channel
   const channel = useChannel({

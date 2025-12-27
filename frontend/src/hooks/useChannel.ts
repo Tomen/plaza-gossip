@@ -238,7 +238,7 @@ export function useChannel({
     [enabled, getWriteContract, loadChannelInfo]
   );
 
-  // Load messages and channel info when channel changes
+  // Load messages and channel info when channel changes or getDisplayName becomes available
   useEffect(() => {
     if (channelAddress && provider) {
       loadMessages();
@@ -248,7 +248,7 @@ export function useChannel({
       setChannelInfo(null);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [channelAddress, provider]);
+  }, [channelAddress, provider, getDisplayName]);
 
   // Poll for new messages every 15 seconds
   useEffect(() => {

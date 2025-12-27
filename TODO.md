@@ -1,0 +1,5 @@
+- user profiles should be sendable as link and the UI shouldn't yet look like an app in its heaviness
+- tipping
+- Newsfeed + Patreon
+- Forum, Hackernews, Reddit
+- posts

@@ -89,7 +89,7 @@ export function DelegateSetupModal({
 
         <div className="space-y-6">
           {/* Session wallet info */}
-          <div className="border-2 border-primary-700 p-4">
+          <div className="border border-primary-700 p-4">
             <div className="font-mono text-sm">
               <div className="flex justify-between text-primary-400 mb-2">
                 <span>SESSION ADDRESS:</span>
@@ -103,7 +103,7 @@ export function DelegateSetupModal({
           </div>
 
           {/* Step 1: Authorize */}
-          <div className={`border-2 p-4 ${isAuthorized ? 'border-green-700' : 'border-primary-700'}`}>
+          <div className={`border p-4 ${isAuthorized ? 'border-green-700' : 'border-primary-700'}`}>
             <div className="flex items-center justify-between mb-2">
               <span className="font-mono text-sm text-primary-400">
                 STEP 1: AUTHORIZE SESSION WALLET
@@ -126,7 +126,7 @@ export function DelegateSetupModal({
           </div>
 
           {/* Step 2: Fund */}
-          <div className="border-2 border-primary-700 p-4">
+          <div className="border border-primary-700 p-4">
             <div className="flex items-center justify-between mb-2">
               <span className="font-mono text-sm text-primary-400">
                 STEP 2: FUND SESSION WALLET

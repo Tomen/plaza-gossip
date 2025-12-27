@@ -47,7 +47,7 @@ export function PrivateKeyExportModal({
         </h2>
 
         {/* Warnings */}
-        <div className="mb-4 p-4 border-2 border-red-700 bg-red-950 bg-opacity-30">
+        <div className="mb-4 p-4 border border-red-700 bg-red-950 bg-opacity-30">
           <div className="flex items-start gap-2">
             <span className="text-red-500 text-xl">⚠</span>
             <div className="font-mono text-sm text-red-400">
@@ -82,7 +82,7 @@ export function PrivateKeyExportModal({
           </label>
           <div className="relative">
             <div
-              className={`px-3 py-3 bg-black border-2 border-primary-500 font-mono text-sm break-all ${
+              className={`px-3 py-3 bg-black border border-primary-500 font-mono text-sm break-all ${
                 isRevealed ? 'text-yellow-400' : 'text-gray-600'
               }`}
             >
