@@ -7,6 +7,7 @@ interface NetworkDeployment {
   userRegistry: string;
   channelRegistry: string;
   dmRegistry: string;
+  followRegistry?: string;
   channels?: {
     general?: string;
   };

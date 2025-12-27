@@ -11,14 +11,17 @@ import { useDMRegistry } from './hooks/useDMRegistry';
 import { useDMConversation } from './hooks/useDMConversation';
 import { useSessionKeys } from './hooks/useSessionKeys';
 import { useDeployments } from './hooks/useDeployments';
+import { useFollowRegistry } from './hooks/useFollowRegistry';
 import { hasStandaloneWallet } from './utils/appWallet';
 import { truncateAddress } from './utils/formatters';
 import { AccountButton } from './components/AccountButton';
 import { AccountModal } from './components/AccountModal';
 import { ChatFeed } from './components/ChatFeed';
 import { MessageInput } from './components/MessageInput';
-import { Sidebar, type ViewMode } from './components/Sidebar';
+import { Sidebar, type ViewMode, type SidebarSection } from './components/Sidebar';
+import { ProfileView } from './components/ProfileView';
 import { ChannelHeader } from './components/ChannelHeader';
+import { ChannelModerationModal } from './components/ChannelModerationModal';
 import { UserListPanel } from './components/UserListPanel';
 import { UserProfileModal } from './components/UserProfileModal';
 import { CreateChannelModal } from './components/CreateChannelModal';
@@ -41,8 +44,10 @@ function App() {
   const urlParams = new URLSearchParams(window.location.search);
   const registryAddress = urlParams.get('registry') || deployments?.channelRegistry || null;
   const dmRegistryAddress = urlParams.get('dmRegistry') || deployments?.dmRegistry || null;
+  const followRegistryAddress = urlParams.get('followRegistry') || deployments?.followRegistry || null;
   const directChannelAddress = urlParams.get('channel');
   const directDMAddress = urlParams.get('dm');
+  const directProfileAddress = urlParams.get('profile');
 
   // Track if user provided registry params in initial URL (for URL persistence)
   const [userProvidedRegistry] = useState(() => {
@@ -213,16 +218,56 @@ function App() {
 
   // DM-related state - URL param takes priority, then localStorage
   const [viewMode, setViewMode] = useState<ViewMode>(() => {
-    // URL dm param implies DM view mode
+    // URL params imply view mode
+    if (directProfileAddress) return 'profile';
     if (directDMAddress) return 'dms';
     const stored = localStorage.getItem('viewMode') as ViewMode | null;
-    return stored === 'dms' ? 'dms' : 'channels';
+    if (stored === 'dms' || stored === 'profile') return stored;
+    return 'channels';
   });
   const [selectedConversation, setSelectedConversation] = useState<string | null>(() => {
     // URL dm param takes priority
     if (directDMAddress) return directDMAddress;
     return localStorage.getItem('selectedConversation');
   });
+
+  // Profile view state
+  const [selectedProfile, setSelectedProfile] = useState<string | null>(() => {
+    if (directProfileAddress) return directProfileAddress;
+    return localStorage.getItem('selectedProfile');
+  });
+
+  // Sidebar expansion state
+  const [sidebarExpanded, setSidebarExpanded] = useState(() => {
+    const stored = localStorage.getItem('sidebarExpanded');
+    if (stored) {
+      try {
+        return JSON.parse(stored);
+      } catch {
+        // ignore
+      }
+    }
+    return { channels: true, dms: true, following: true };
+  });
+
+  const handleToggleSection = (section: SidebarSection) => {
+    setSidebarExpanded((prev: Record<SidebarSection, boolean>) => ({
+      ...prev,
+      [section]: !prev[section],
+    }));
+  };
+
+  // Persist sidebar expansion
+  useEffect(() => {
+    localStorage.setItem('sidebarExpanded', JSON.stringify(sidebarExpanded));
+  }, [sidebarExpanded]);
+
+  // Persist selected profile
+  useEffect(() => {
+    if (selectedProfile) {
+      localStorage.setItem('selectedProfile', selectedProfile);
+    }
+  }, [selectedProfile]);
 
   // Persist view mode and selected conversation
   useEffect(() => {
@@ -248,21 +293,28 @@ function App() {
       url.searchParams.delete('dmRegistry');
     }
 
-    // Set channel or dm param based on view mode
+    // Set channel, dm, or profile param based on view mode
     if (viewMode === 'channels' && selectedChannel) {
       url.searchParams.set('channel', selectedChannel);
       url.searchParams.delete('dm');
+      url.searchParams.delete('profile');
     } else if (viewMode === 'dms' && selectedConversation) {
       url.searchParams.set('dm', selectedConversation);
       url.searchParams.delete('channel');
-    } else {
-      // No selection - remove both
+      url.searchParams.delete('profile');
+    } else if (viewMode === 'profile' && selectedProfile) {
+      url.searchParams.set('profile', selectedProfile);
       url.searchParams.delete('channel');
       url.searchParams.delete('dm');
+    } else {
+      // No selection - remove all
+      url.searchParams.delete('channel');
+      url.searchParams.delete('dm');
+      url.searchParams.delete('profile');
     }
 
     window.history.replaceState({}, '', url.toString());
-  }, [viewMode, selectedChannel, selectedConversation, showRegistryInUrl, registryAddress, dmRegistryAddress]);
+  }, [viewMode, selectedChannel, selectedConversation, selectedProfile, showRegistryInUrl, registryAddress, dmRegistryAddress]);
 
   const [showNewDMModal, setShowNewDMModal] = useState(false);
   const [dmOtherParticipant, setDmOtherParticipant] = useState<string | null>(null);
@@ -276,6 +328,15 @@ function App() {
     userAddress: walletConfig.activeAddress,
     signer: walletConfig.channelSigner,
     enabled: walletConfig.isReady && !!dmRegistryAddress,
+  });
+
+  // Follow Registry hook
+  const followRegistry = useFollowRegistry({
+    registryAddress: followRegistryAddress,
+    provider: walletConfig.activeProvider,
+    userAddress: walletConfig.activeAddress,
+    signer: walletConfig.channelSigner,
+    enabled: walletConfig.isReady && !!followRegistryAddress,
   });
 
   // Session keys hook (for encrypted DMs)
@@ -419,6 +480,8 @@ function App() {
   // Modals
   const [showAccountModal, setShowAccountModal] = useState(false);
   const [showCreateChannelModal, setShowCreateChannelModal] = useState(false);
+  const [showModerationModal, setShowModerationModal] = useState(false);
+  const [canManageChannel, setCanManageChannel] = useState(false);
   const [showWalletChoiceModal, setShowWalletChoiceModal] = useState(walletMode === 'none');
   const [showInAppSetup, setShowInAppSetup] = useState(false);
   const [showExportKeyModal, setShowExportKeyModal] = useState(false);
@@ -428,6 +491,32 @@ function App() {
 
   // Track if user explicitly initiated browser wallet connection (to avoid showing modal on page load)
   const [pendingBrowserLink, setPendingBrowserLink] = useState(false);
+
+  // Check if user can manage the current channel
+  useEffect(() => {
+    const checkManagePermission = async () => {
+      if (!channel.channelInfo || !walletConfig.activeAddress) {
+        setCanManageChannel(false);
+        return;
+      }
+
+      // Owner can always manage
+      if (channel.channelInfo.owner.toLowerCase() === walletConfig.activeAddress.toLowerCase()) {
+        setCanManageChannel(true);
+        return;
+      }
+
+      // Check if user is an admin
+      try {
+        const admin = await channel.isAdmin(walletConfig.activeAddress);
+        setCanManageChannel(admin);
+      } catch {
+        setCanManageChannel(false);
+      }
+    };
+
+    checkManagePermission();
+  }, [channel.channelInfo, walletConfig.activeAddress, channel.isAdmin]);
 
   // Show wallet choice modal when not connected
   // This handles the case where walletMode is 'browser' but MetaMask isn't connected
@@ -506,6 +595,13 @@ function App() {
   const handleCreateChannel = async (name: string, description: string, postingMode: PostingMode) => {
     const result = await channelRegistry.createChannel(name, description, postingMode);
     setSelectedChannel(result.channelAddress);
+    return result;
+  };
+
+  const handleCreateUnlistedChannel = async (name: string, description: string) => {
+    const result = await channelRegistry.deployUnlistedChannel(name, description);
+    setSelectedChannel(result.channelAddress);
+    return result;
   };
 
   // Start DM conversation handler
@@ -687,7 +783,7 @@ function App() {
 
       {/* Main Content */}
       <main className="flex-1 flex overflow-hidden">
-        {/* Sidebar with channels and DMs */}
+        {/* Sidebar with channels, DMs, and following */}
         {registryAddress && (
           <Sidebar
             channels={channelRegistry.channels}
@@ -708,6 +804,12 @@ function App() {
             dmLoading={dmRegistry.isLoading}
             dmRegistryAvailable={!!dmRegistryAddress}
             getDisplayName={getDisplayName}
+            following={followRegistry.following}
+            selectedProfile={selectedProfile}
+            onSelectProfile={setSelectedProfile}
+            followRegistryAvailable={!!followRegistryAddress}
+            sidebarExpanded={sidebarExpanded}
+            onToggleSection={handleToggleSection}
           />
         )}
 
@@ -765,6 +867,8 @@ function App() {
               <ChannelHeader
                 channelInfo={channel.channelInfo}
                 isLoading={channel.isLoading && !channel.channelInfo}
+                canManage={canManageChannel}
+                onManageClick={() => setShowModerationModal(true)}
               />
 
               {/* Chat feed */}
@@ -772,6 +876,8 @@ function App() {
                 messages={channel.messages}
                 isLoading={channel.isLoading && channel.messages.length === 0}
                 currentAddress={walletConfig.activeAddress}
+                currentUserDisplayName={userRegistry.profile?.displayName}
+                onSelectUser={setProfileModalAddress}
               />
 
               {/* Message input */}
@@ -781,7 +887,7 @@ function App() {
                 isSending={isSending}
               />
             </>
-          ) : (
+          ) : viewMode === 'dms' ? (
             // DM conversation view
             selectedConversation ? (
               <DMConversationView
@@ -806,7 +912,22 @@ function App() {
                 </div>
               </div>
             )
-          )}
+          ) : viewMode === 'profile' ? (
+            // Profile view
+            <ProfileView
+              userAddress={selectedProfile}
+              currentUserAddress={walletConfig.activeAddress}
+              getProfile={userRegistry.getProfile}
+              onStartDM={dmRegistryAddress ? handleStartDM : undefined}
+              dmRegistryAvailable={!!dmRegistryAddress}
+              isFollowing={selectedProfile ? followRegistry.isFollowingSync(selectedProfile) : false}
+              onFollow={followRegistry.follow}
+              onUnfollow={followRegistry.unfollow}
+              followLoading={followRegistry.isLoading}
+              followerCount={followRegistry.followerCount}
+              followingCount={followRegistry.followingCount}
+            />
+          ) : null}
         </div>
 
         {/* User list panel (only for channels) */}
@@ -814,6 +935,7 @@ function App() {
           <UserListPanel
             messages={channel.messages}
             currentAddress={walletConfig.activeAddress}
+            currentUserDisplayName={userRegistry.profile?.displayName}
             onSelectUser={setProfileModalAddress}
           />
         )}
@@ -893,6 +1015,20 @@ function App() {
         isOpen={showCreateChannelModal}
         onClose={() => setShowCreateChannelModal(false)}
         onCreate={handleCreateChannel}
+        onCreateUnlisted={handleCreateUnlistedChannel}
+      />
+
+      <ChannelModerationModal
+        isOpen={showModerationModal}
+        onClose={() => setShowModerationModal(false)}
+        channelInfo={channel.channelInfo}
+        currentUserAddress={walletConfig.activeAddress}
+        addAllowedPoster={channel.addAllowedPoster}
+        removeAllowedPoster={channel.removeAllowedPoster}
+        promoteAdmin={channel.promoteAdmin}
+        demoteAdmin={channel.demoteAdmin}
+        transferOwnership={channel.transferOwnership}
+        setPostingMode={channel.setPostingMode}
       />
 
       <NewDMModal
@@ -908,9 +1044,14 @@ function App() {
         isOpen={!!profileModalAddress}
         onClose={() => setProfileModalAddress(null)}
         userAddress={profileModalAddress}
+        currentUserAddress={walletConfig.activeAddress}
         getProfile={userRegistry.getProfile}
         onStartDM={dmRegistryAddress ? handleStartDM : undefined}
         dmRegistryAvailable={!!dmRegistryAddress}
+        isFollowing={profileModalAddress ? followRegistry.isFollowingSync(profileModalAddress) : false}
+        onFollow={followRegistry.follow}
+        onUnfollow={followRegistry.unfollow}
+        followRegistryAvailable={!!followRegistryAddress}
       />
     </div>
   );

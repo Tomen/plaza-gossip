@@ -21,7 +21,7 @@ async function main() {
   }
 
   // 1. Deploy UserRegistry
-  console.log("\n1/3 Deploying UserRegistry...");
+  console.log("\n1/7 Deploying UserRegistry...");
   const UserRegistry = await hre.ethers.getContractFactory("UserRegistry");
   const userRegistry = await UserRegistry.deploy();
   await userRegistry.waitForDeployment();
@@ -29,7 +29,7 @@ async function main() {
   console.log(`   ✅ UserRegistry deployed to: ${userRegistryAddress}`);
 
   // 2. Deploy ChannelRegistry
-  console.log("\n2/3 Deploying ChannelRegistry...");
+  console.log("\n2/7 Deploying ChannelRegistry...");
   const ChannelRegistry = await hre.ethers.getContractFactory("ChannelRegistry");
   const channelRegistry = await ChannelRegistry.deploy(userRegistryAddress);
   await channelRegistry.waitForDeployment();
@@ -37,12 +37,44 @@ async function main() {
   console.log(`   ✅ ChannelRegistry deployed to: ${channelRegistryAddress}`);
 
   // 3. Deploy DMRegistry
-  console.log("\n3/3 Deploying DMRegistry...");
+  console.log("\n3/7 Deploying DMRegistry...");
   const DMRegistry = await hre.ethers.getContractFactory("DMRegistry");
   const dmRegistry = await DMRegistry.deploy(userRegistryAddress);
   await dmRegistry.waitForDeployment();
   const dmRegistryAddress = await dmRegistry.getAddress();
   console.log(`   ✅ DMRegistry deployed to: ${dmRegistryAddress}`);
+
+  // 4. Deploy FollowRegistry
+  console.log("\n4/7 Deploying FollowRegistry...");
+  const FollowRegistry = await hre.ethers.getContractFactory("FollowRegistry");
+  const followRegistry = await FollowRegistry.deploy();
+  await followRegistry.waitForDeployment();
+  const followRegistryAddress = await followRegistry.getAddress();
+  console.log(`   ✅ FollowRegistry deployed to: ${followRegistryAddress}`);
+
+  // 5. Deploy Voting (shared voting system)
+  console.log("\n5/7 Deploying Voting...");
+  const Voting = await hre.ethers.getContractFactory("Voting");
+  const voting = await Voting.deploy(userRegistryAddress);
+  await voting.waitForDeployment();
+  const votingAddress = await voting.getAddress();
+  console.log(`   ✅ Voting deployed to: ${votingAddress}`);
+
+  // 6. Deploy Replies (shared reply system)
+  console.log("\n6/7 Deploying Replies...");
+  const Replies = await hre.ethers.getContractFactory("Replies");
+  const replies = await Replies.deploy(userRegistryAddress);
+  await replies.waitForDeployment();
+  const repliesAddress = await replies.getAddress();
+  console.log(`   ✅ Replies deployed to: ${repliesAddress}`);
+
+  // 7. Deploy UserPosts (profile posts)
+  console.log("\n7/7 Deploying UserPosts...");
+  const UserPosts = await hre.ethers.getContractFactory("UserPosts");
+  const userPosts = await UserPosts.deploy(userRegistryAddress);
+  await userPosts.waitForDeployment();
+  const userPostsAddress = await userPosts.getAddress();
+  console.log(`   ✅ UserPosts deployed to: ${userPostsAddress}`);
 
   // Summary
   console.log("\n" + "=".repeat(60));
@@ -52,6 +84,10 @@ async function main() {
   console.log(`  UserRegistry:    ${userRegistryAddress}`);
   console.log(`  ChannelRegistry: ${channelRegistryAddress}`);
   console.log(`  DMRegistry:      ${dmRegistryAddress}`);
+  console.log(`  FollowRegistry:  ${followRegistryAddress}`);
+  console.log(`  Voting:          ${votingAddress}`);
+  console.log(`  Replies:         ${repliesAddress}`);
+  console.log(`  UserPosts:       ${userPostsAddress}`);
   console.log("\nOpen the chat at:");
   console.log(`  http://localhost:5173/?registry=${channelRegistryAddress}`);
   console.log("\nNote: Create channels via the UI or register existing ones with migrate-channels.js");
@@ -100,6 +136,10 @@ async function main() {
     userRegistry: userRegistryAddress,
     channelRegistry: channelRegistryAddress,
     dmRegistry: dmRegistryAddress,
+    followRegistry: followRegistryAddress,
+    voting: votingAddress,
+    replies: repliesAddress,
+    userPosts: userPostsAddress,
     deployedAt: new Date().toISOString(),
   };
 

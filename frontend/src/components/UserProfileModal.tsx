@@ -6,23 +6,57 @@ interface UserProfileModalProps {
   isOpen: boolean;
   onClose: () => void;
   userAddress: string | null;
+  currentUserAddress?: string | null;
   getProfile: (address: string) => Promise<Profile>;
   onStartDM?: (address: string) => void;
   dmRegistryAvailable?: boolean;
+  // Follow functionality
+  isFollowing?: boolean;
+  onFollow?: (address: string) => Promise<void>;
+  onUnfollow?: (address: string) => Promise<void>;
+  followRegistryAvailable?: boolean;
 }
 
 export function UserProfileModal({
   isOpen,
   onClose,
   userAddress,
+  currentUserAddress,
   getProfile,
   onStartDM,
   dmRegistryAvailable = false,
+  isFollowing = false,
+  onFollow,
+  onUnfollow,
+  followRegistryAvailable = false,
 }: UserProfileModalProps) {
   const [profile, setProfile] = useState<Profile | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
+  const [followActionLoading, setFollowActionLoading] = useState(false);
+
+  const isOwnProfile = userAddress?.toLowerCase() === currentUserAddress?.toLowerCase();
+
+  const handleFollow = async () => {
+    if (!userAddress || !onFollow) return;
+    setFollowActionLoading(true);
+    try {
+      await onFollow(userAddress);
+    } finally {
+      setFollowActionLoading(false);
+    }
+  };
+
+  const handleUnfollow = async () => {
+    if (!userAddress || !onUnfollow) return;
+    setFollowActionLoading(true);
+    try {
+      await onUnfollow(userAddress);
+    } finally {
+      setFollowActionLoading(false);
+    }
+  };
 
   const handleCopyAddress = async () => {
     if (!userAddress) return;
@@ -148,16 +182,41 @@ export function UserProfileModal({
 
           {/* Action buttons */}
           <div className="space-y-2 mt-4">
-            {dmRegistryAvailable && onStartDM && userAddress && (
-              <button
-                onClick={() => {
-                  onStartDM(userAddress);
-                  onClose();
-                }}
-                className="w-full py-2 bg-accent-950 hover:bg-accent-900 border-2 border-accent-500 text-accent-400 font-mono text-sm hover:border-accent-400 transition-all"
-              >
-                SEND DM
-              </button>
+            {!isOwnProfile && (
+              <>
+                {dmRegistryAvailable && onStartDM && userAddress && (
+                  <button
+                    onClick={() => {
+                      onStartDM(userAddress);
+                      onClose();
+                    }}
+                    className="w-full py-2 bg-accent-950 hover:bg-accent-900 border-2 border-accent-500 text-accent-400 font-mono text-sm hover:border-accent-400 transition-all"
+                  >
+                    SEND DM
+                  </button>
+                )}
+                {followRegistryAvailable && onFollow && onUnfollow && userAddress && (
+                  <button
+                    onClick={isFollowing ? handleUnfollow : handleFollow}
+                    disabled={followActionLoading}
+                    className={`w-full py-2 border-2 font-mono text-sm transition-all ${
+                      followActionLoading
+                        ? 'opacity-50 cursor-not-allowed'
+                        : ''
+                    } ${
+                      isFollowing
+                        ? 'bg-gray-900 hover:bg-gray-800 border-gray-600 text-gray-400 hover:border-gray-500'
+                        : 'bg-primary-950 hover:bg-primary-900 border-primary-500 text-primary-400 hover:border-primary-400'
+                    }`}
+                  >
+                    {followActionLoading
+                      ? '...'
+                      : isFollowing
+                      ? 'UNFOLLOW'
+                      : 'FOLLOW'}
+                  </button>
+                )}
+              </>
             )}
             <button
               onClick={onClose}
